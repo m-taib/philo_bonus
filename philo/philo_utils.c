@@ -1,7 +1,8 @@
 #include "philo.h"
+#include <string.h>
 
 int	ft_atoi(char *str);
-int	check_args(char **av, int ac, t_philo *philo);
+int	check_args(char **av, int ac, t_info *philo);
 
 int	is_num(char **av)
 {
@@ -22,7 +23,7 @@ int	is_num(char **av)
 	return (1);
 }
 
-int	check_args(char **av, int ac, t_philo *philo)	
+int	check_args(char **av, int ac, t_info *philo)	
 {
 	int	i;
 	int	*args;
@@ -32,6 +33,7 @@ int	check_args(char **av, int ac, t_philo *philo)
 	args = malloc(sizeof(int) * (ac - 1));
 	if (!args)
 		return (0);
+	memset(args, 0, sizeof(int) * (ac - 1));
 	i = -1;
 	while (av[++i])
 		args[i] = ft_atoi(av[i]);
@@ -70,32 +72,42 @@ int	ft_atoi(char *str)
 int	is_full(t_philo *philo)
 {
 	int	i;
+	t_philo *tmp;
 
+	tmp = philo;
 	i = -1;
-	if (!philo->nb_to_eat)
+	if (!philo->philo_info->info[ntp_must_eat])
 		return (0);
-	while (++i < philo->info[philo_n])
+	while (philo)
 	{
-		if (philo->nb_to_eat[i] &&
-			philo->nb_to_eat[i] < philo->info[ntp_must_eat])
+		pthread_mutex_lock(philo->dead);
+		if (philo->n_meals < philo->philo_info->info[ntp_must_eat])
+		{
+			pthread_mutex_unlock(philo->dead);
 			return (0);
+		}
+		pthread_mutex_unlock(philo->dead);
+		philo = philo->next;
+		if (tmp == philo)
+			break;
 	}
 	return (1);
 }
 
-void	ft_clear(t_philo *philo)
+void	ft_clear(t_info *philo)
 {
 	int	i;
 
 	i = -1;
-	while (++i < philo->info[philo_n])
+	(void)philo;
+	/*while (++i < philo->info[philo_n])
 		pthread_mutex_unlock(&(philo->ptr_m[i]));
 	i = -1;
 	while (++i < philo->info[philo_n])
 		pthread_mutex_destroy(&(philo->ptr_m[i]));
 	i = -1;
 	while (++i < philo->info[philo_n])
-		pthread_join(philo->ptr_t[i], NULL);
+		pthread_join(philo->ptr_t[i], NULL);*/
 	//free(philo->ptr_t);
 	//free(philo->info);
 	//free(philo);
