@@ -19,6 +19,7 @@ typedef struct philo
 	long	init_time;
 	sem_t 	*sem;
 	sem_t 	*sem_death;
+	sem_t 	*sem_dead;
 	sem_t	*sem_eat;
 	sem_t	*sem_print;
 	pthread_t th;

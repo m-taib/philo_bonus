@@ -15,10 +15,25 @@ long	ft_interval(time_t before, time_t after)
 
 void	ft_usleep(t_philo *vars, int time)
 {
-	time_t	waiting_until;
+	/*time_t	waiting_until;
 	(void)vars;
 	waiting_until = get_time() + time;
-	while (waiting_until > get_time())
-		usleep(25);
+	while (waiting_until >= get_time())
+		usleep(200);*/
+	struct timeval	t1;
+	struct timeval	t2;
+	long long	diff;
+	
+	gettimeofday(&t1, NULL);
+	(void)vars;
+	time = time * 1000;
+	while (1)
+	{
+		gettimeofday(&t2, NULL);
+		diff = 1000000 * (t2.tv_sec - t1.tv_sec) + t2.tv_usec - t1.tv_usec;
+		if (diff >= time)
+			return ;
+		usleep(200);
+	}
 }
 
