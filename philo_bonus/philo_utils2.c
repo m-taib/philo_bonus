@@ -13,13 +13,30 @@ long	ft_interval(time_t before, time_t after)
 	return (after - before);
 }
 
-void	ft_usleep(t_philo *vars, int time)
+int		ft_usleep(t_philo *vars, int time)
 {
+	time_t	waiting_until;
+
+	waiting_until = get_time() + (long)time;
+	//sem_wait(vars->sem_lte);
+	while (waiting_until > get_time())
+	{
+		if (ft_interval(vars->eating_time,
+				get_time()) >= vars->info[time_to_die])
+		{
+			sem_post(vars->sem_lte);
+			sem_post(vars->sem_death);
+			return (0);
+		}
+		usleep(200);
+	}
+	//sem_post(vars->sem_lte);
+	return (1);
 	/*time_t	waiting_until;
 	(void)vars;
 	waiting_until = get_time() + time;
 	while (waiting_until >= get_time())
-		usleep(200);*/
+		usleep(200);
 	struct timeval	t1;
 	struct timeval	t2;
 	long long	diff;
@@ -34,6 +51,6 @@ void	ft_usleep(t_philo *vars, int time)
 		if (diff >= time)
 			return ;
 		usleep(200);
-	}
+	}*/
 }
 

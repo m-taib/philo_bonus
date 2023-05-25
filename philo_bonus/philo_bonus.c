@@ -4,12 +4,15 @@ void	*supervisor(void *philo)
 {
 	t_philo *arg;
 	int	i;
+	int	j = 0;
 
 	i = -1;	
 	arg = (t_philo *)philo;
 	while (1)
 	{
-		sem_wait(arg->sem_dead);
+		sem_wait(arg->sem_lte);
+		// diff = lksdf
+		// sem_post();
 		if (ft_interval(arg->eating_time,
 				get_time()) >= arg->info[time_to_die])
 		{
@@ -20,19 +23,19 @@ void	*supervisor(void *philo)
 				sem_wait(arg->sem_print);
 				printf("%ld %d died\n",
 					ft_interval(arg->init_time, get_time()), arg->i + 1);
+				arg->is_dead = 1;
 				while (++i < arg->info[philo_n])
 					sem_post(arg->sem_eat);
-				sem_post(arg->sem_dead);
 				sem_post(arg->sem_death);
 				//exit(1);
 			}
 		}
-		sem_post(arg->sem_dead);
-		if (arg->info[ntp_must_eat] && arg->nb_to_eat >= arg->info[ntp_must_eat])
-		{
+		sem_post(arg->sem_lte);
+		//sem_wait(arg->sem_lte);
+		//has_eaten_enough = 
+		//sem_post
+		if (arg->info[ntp_must_eat] && arg->nb_to_eat == arg->info[ntp_must_eat] && ++j == 1)
 			sem_post(arg->sem_eat);
-			return (NULL);
-		}
 		usleep(200);
 	}
 	return (NULL);
@@ -48,7 +51,6 @@ void    philo_routine(t_philo *arg)
 	i = arg->i;
 	while(get_time() <= arg->init_time)
 		usleep(200);
-
 
 	arg->eating_time = get_time();
 	pthread_create(&arg->th, NULL, supervisor, arg);
@@ -76,9 +78,9 @@ void    philo_routine(t_philo *arg)
 				ft_interval(arg->init_time, get_time()), i + 1);
 			sem_post(arg->sem_print);
 			
-			sem_wait(arg->sem_dead);
+			sem_wait(arg->sem_lte);
 			arg->eating_time = get_time();
-			sem_post(arg->sem_dead);
+			sem_post(arg->sem_lte);
 
 			sem_wait(arg->sem_print);
 			printf("%ld %d is eating\n",
@@ -86,9 +88,12 @@ void    philo_routine(t_philo *arg)
 			//get time and pass it to ft_usleep
 			sem_post(arg->sem_print);
 			
-			ft_usleep(arg, arg->info[time_to_eat]);
+			if (!ft_usleep(arg, arg->info[time_to_eat]))
+				return ;
+			sem_wait(arg->sem_lte);
 			if (arg->info[ntp_must_eat])
 				arg->nb_to_eat++;
+			sem_post(arg->sem_lte);
 			//usleep(arg->info[time_to_eat] * 1000);
 			sem_post(arg->sem);
 			sem_post(arg->sem);
@@ -116,15 +121,16 @@ void	philos_create(t_philo *philo)
 	sem_unlink("/FORKS");
 	sem_unlink("/EAT");
 	sem_unlink("/DEATH");
-	sem_unlink("/DEAD");
+	sem_unlink("/LTE");
 	sem_unlink("/PRINT");
 	philo->sem = sem_open("/FORKS", O_CREAT | O_EXCL, 0644, philo->info[philo_n]);
 	philo->sem_eat = sem_open("/EAT", O_CREAT | O_EXCL, 0644, 0);
 	philo->sem_death = sem_open("/DEATH", O_CREAT | O_EXCL, 0644, 0);
-	philo->sem_dead = sem_open("/DEAD", O_CREAT | O_EXCL, 0644, 1);
+	philo->sem_lte = sem_open("/LTE", O_CREAT | O_EXCL, 0644, 1);
 	philo->sem_print = sem_open("/PRINT", O_CREAT | O_EXCL, 0644, 1);
 	philo->init_time = get_time() + 300;
 	philo->i = -1;
+	philo->is_dead = 0;
 	while (++philo->i < philo->info[philo_n])
 	{
 		pid = fork();

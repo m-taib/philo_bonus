@@ -19,7 +19,7 @@ typedef struct philo
 	long	init_time;
 	sem_t 	*sem;
 	sem_t 	*sem_death;
-	sem_t 	*sem_dead;
+	sem_t 	*sem_lte;
 	sem_t	*sem_eat;
 	sem_t	*sem_print;
 	pthread_t th;
@@ -28,7 +28,7 @@ typedef struct philo
 } t_philo;
 
 void    *supervisor(void *philo);
-void    ft_usleep(t_philo *vars, int time);
+int	    ft_usleep(t_philo *vars, int time);
 int	is_num(char **av);
 int	ft_atoi(char *str);
 int     check_args(char **av, int ac, t_philo *philo);
